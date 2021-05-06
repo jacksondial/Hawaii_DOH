@@ -1,0 +1,19 @@
+---
+title: "RStudio Introduction"
+output:
+html_document:
+  code_folding: hide
+  theme: flatly
+---
+
+# R/RStudio
+
+# When to utilize R
+
+# Strengths
+
+
+
+
+
+
