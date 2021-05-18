@@ -34,11 +34,17 @@ data %>%
 #hypothesis: See if the data shows that people use more respiratory med during
 #times of high, medium, and low
 
-#second hypothesis: difference is going to be more pronounced in antihiasmatic
-#and broncho
+#second hypothesis: difference is going to be more pronounced in ANTIASTHMATIC 
+#and BRONCHODILATOR AGENTS
 
 
 
 # Get to know the data
 
 summary(as.factor(data$prod_name))
+
+
+#Show the average number of prescriptions per class
+sum_data <- data %>% 
+  group_by(Class) %>% 
+  summarise(rx_per_class = mean(TRx))
