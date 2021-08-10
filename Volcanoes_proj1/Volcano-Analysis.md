@@ -12,7 +12,8 @@ editor_options:
 
 ## Load Libraries
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 library(tidyverse)
 library(readxl)
 ```
@@ -20,9 +21,9 @@ library(readxl)
 
 ## Read in Data
 
-```{r message=FALSE, warning=FALSE}
-data <- read_csv("../../Data/Hawaii Volcano Study_Final 05.18.2021.csv")
 
+```r
+data <- read_csv("../../Data/Hawaii Volcano Study_Final 05.18.2021.csv")
 ```
 
 ## EDA
@@ -37,7 +38,8 @@ May – Aug 2019 – __LOW Vog__
 
 Here we will filter the data to include only the dates of interest, rename a few columns to make them easier to use, and add an attribute that classifies each of the 3 time frames as their respective level of VOG.
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 interested_data <- data %>% 
   filter(Month == "05" | Month == "06" | Month == "07" | Month == "08") %>% 
   rename(prod_name = `Product Name`,
@@ -61,12 +63,35 @@ interested_data <- data %>%
 
 Below is a bit of exploratory data analysis (EDA) regarding the attribute of interest, including a 5-number-summary of the TRx variable, the number of transactions that were above 100 prescriptions, and a plot showing the number of prescriptions for each transaction during each of the time periods, throughout each month, and in each county.
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 table(interested_data$Class)
+```
+
+```
+## 
+## ANTIASTHMATIC and BRONCHODILATOR AGENTS 
+##                                   97939
+```
+
+```r
 summary(interested_data$TRx)
+```
 
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   1.000   1.000   2.000   4.833   4.000 531.000
+```
+
+```r
 interested_data %>% filter(TRx > 100) %>% nrow()
+```
 
+```
+## [1] 186
+```
+
+```r
 ggplot(interested_data, aes(x = Month, y = TRx))+
   geom_jitter(height = 0, alpha = .2, aes(col = as.factor(VogLevel)))+
   theme(panel.grid.minor = element_blank(),
@@ -75,7 +100,11 @@ ggplot(interested_data, aes(x = Month, y = TRx))+
   labs(y = "Number of Prescriptions",
        col = "Level of VOG",
        title = "# of TRx per Transaction")
+```
 
+![](Volcano-Analysis_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+```r
 #, scales = "free"
 
 
@@ -84,10 +113,10 @@ ggplot(interested_data, aes(x = Month, y = TRx))+
 #Heatmap of Hawaii County
 #Stats tests
 #Boxplots
-
 ```
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 ggplot(interested_data, aes(x = VogLevel, y = TRx))+
   geom_violin()+
   facet_wrap(~County)+
@@ -96,29 +125,63 @@ labs(x = "Level of VOG",
      title = "Monthly Violin-Plots per County")
 ```
 
+![](Volcano-Analysis_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
-```{r message=FALSE, warning=FALSE}
+
+
+```r
 hidf <- interested_data %>% 
   filter(County == "Hawaii County") %>% 
   select(location) 
 unique(hidf$location)
+```
 
+```
+## [1] "96740"            "Hawaii County NW" "Hawaii County SE" "96720"
+```
+
+```r
 hodf <- interested_data %>% 
   filter(County == "Honolulu County") %>% 
   select(location) 
 unique(hodf$location)
+```
 
+```
+##  [1] "96814"                         "96782"                        
+##  [3] "Honolulu County Pearl Harbor"  "96701"                        
+##  [5] "Honolulu County N"             "Windward"                     
+##  [7] "96792"                         "96706"                        
+##  [9] "Honolulu County Central"       "96813"                        
+## [11] "96707"                         "Honolulu County East Honolulu"
+## [13] "96744"                         "96817"                        
+## [15] "96826"                         "96797"                        
+## [17] "Diamond Head"
+```
+
+```r
 kidf <- interested_data %>% 
   filter(County == "Kauai County") %>% 
   select(location) 
 unique(kidf$location)
+```
 
+```
+## [1] "Kauai County N" "96766"          "Kauai County S"
+```
+
+```r
 midf <- interested_data %>% 
   filter(County == "Maui County") %>% 
   select(location) 
 unique(midf$location)
+```
 
+```
+## [1] "Maui Central"  "96732"         "Maui County W" "96793"
+```
 
+```r
 library(lubridate)
 HawaiiCounty <- c("96740","Hawaii County NW","Hawaii County SE", "96720")
 HonoluluCounty <- c("96814", "96782", "Honolulu County Pearl Harbor","96701", "Honolulu County N", "Windward", "96792","96706", "Honolulu County Central", "96813","96707","Honolulu County East Honolulu","96744","96817", "96826","96797","Diamond Head")
@@ -142,7 +205,6 @@ correct_data <- interested_data %>%
   ),
   Month = month(ymd(date))
   ) 
-
 ```
 
 ## Simple ANOVA
@@ -163,9 +225,18 @@ $$
 The level of significance for this test will be set to $\alpha = 0.05$
 
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 simple_aov <- aov(AvgTRxPerDay ~ VogLevel, data = correct_data)
 summary(simple_aov)
+```
+
+```
+##               Df Sum Sq Mean Sq F value   Pr(>F)    
+## VogLevel       2     82   41.15   14.81 4.26e-07 ***
+## Residuals   1481   4114    2.78                     
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 As the p-value for this test is significant, we reject our null hypothesis and conclude that there is a significantly different effect on the average number of prescriptions administered in each 'location' at times of low, medium, and high VOG. 
@@ -174,21 +245,40 @@ ANOVA is somewhat limiting in it's statistical conclusivity in that we can only 
 
 Because this is not particularly helpful in our situation, we will run a Pairwise T-Test. This will let us determine which specific groups are significantly different from each other:
 
-```{r message=FALSE, warning=FALSE}
-pairwise.t.test(correct_data$AvgTRxPerDay, correct_data$VogLevel, "none")
 
+```r
+pairwise.t.test(correct_data$AvgTRxPerDay, correct_data$VogLevel, "none")
+```
+
+```
+## 
+## 	Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  correct_data$AvgTRxPerDay and correct_data$VogLevel 
+## 
+##        High    Low    
+## Low    1.1e-07 -      
+## Medium 0.09177 0.00037
+## 
+## P value adjustment method: none
 ```
 
 The pairwise comparison shows us that there is a significant difference in the mean number of prescriptions between each two levels of Vog except between High and Medium. 
 
 Below we will check the assumptions for the ANOVA test:
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 par(mfrow=c(1,2))
 plot(simple_aov,which = 1)
 library(car)
 qqPlot(simple_aov$residuals)
+```
 
+![](Volcano-Analysis_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+
+```
+## [1] 512 932
 ```
 
 #### ANOVA's 3 Assumptions
@@ -214,7 +304,8 @@ Maui County: 167989
 
 ## Plots
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 # ggplot(interested_data, aes(x = VogLevel, y = trx_per_hundred_thousand))+
 #   geom_violin(alpha = .2)+
 #   facet_wrap(~County)
@@ -225,15 +316,26 @@ Maui County: 167989
 ggplot(correct_data, aes(x = VogLevel, y = AvgTRxPerDay))+
   geom_boxplot(alpha = .2)+
   facet_wrap(~County)
+```
 
+![](Volcano-Analysis_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+
+```r
 ggplot(correct_data, aes(x = VogLevel, y = AvgTRxPerDay))+
   geom_violin(alpha = .2)+
   facet_wrap(~County)
+```
 
+![](Volcano-Analysis_files/figure-html/unnamed-chunk-10-2.png)<!-- -->
+
+```r
 ggplot(correct_data, aes(x = VogLevel, y = AvgTRxPerDay))+
   geom_violin(alpha = .2)
+```
 
+![](Volcano-Analysis_files/figure-html/unnamed-chunk-10-3.png)<!-- -->
 
+```r
 # ggplot(interested_data, aes(x = Month, y = trx_per_hundred_thousand))+
 #   geom_jitter(height = 0, alpha = .2, aes(col = as.factor(VogLevel)))+
 #   theme(panel.grid.minor = element_blank(),
@@ -250,7 +352,11 @@ ggplot(SummarizedData, aes(Month,avg_trx_adj))+
   geom_line(aes(group = as.factor(VogLevel), color = VogLevel))+
   theme(panel.grid.minor = element_blank())+
   labs(y = "Average Daily Number of Prescriptions")
+```
 
+![](Volcano-Analysis_files/figure-html/unnamed-chunk-10-4.png)<!-- -->
+
+```r
 #County Facet
 
 CountySummarized <- correct_data %>% 
@@ -261,20 +367,25 @@ ggplot(CountySummarized, aes(Month,avg_trx_adj))+
   geom_line(aes(group = as.factor(VogLevel), color = VogLevel))+
   facet_wrap(~County)+
   theme(panel.grid.minor = element_blank())
-
-
 ```
+
+![](Volcano-Analysis_files/figure-html/unnamed-chunk-10-5.png)<!-- -->
 
 ## Just Hawaii County
 
-```{r message=FALSE, warning=FALSE}
+
+```r
  HawaiiCounty <- correct_data %>% 
    filter(County == "Hawaii County")
 # 
 ggplot(HawaiiCounty, aes(Month, AvgTRxPerDay))+
   geom_boxplot(aes(group = Month))+
   facet_wrap(~location)
+```
 
+![](Volcano-Analysis_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+
+```r
 # ggplot(HawaiiCounty, aes(Month, AvgTRxPerDay))+
 #   geom_violin()+
 #   facet_wrap(~location)
@@ -293,7 +404,11 @@ HawaiiCSumm <- HawaiiCounty %>%
 
 ggplot(HawaiiCSumm, aes(Month, avg_trx))+
   geom_line(aes(group = VogLevel, color = VogLevel))
+```
 
+![](Volcano-Analysis_files/figure-html/unnamed-chunk-11-2.png)<!-- -->
+
+```r
 Hawaiiloc <- HawaiiCounty %>% 
   group_by(Month, VogLevel, location) %>% 
   summarise(avg_trx = mean(AvgTRxPerDay))
@@ -301,12 +416,17 @@ Hawaiiloc <- HawaiiCounty %>%
 ggplot(Hawaiiloc, aes(Month, avg_trx))+
   geom_line(aes(group = VogLevel, color = VogLevel))+
   facet_wrap(~location)
+```
 
+![](Volcano-Analysis_files/figure-html/unnamed-chunk-11-3.png)<!-- -->
+
+```r
 ggplot(HawaiiCounty,aes(as.factor(Month),AvgTRxPerDay))+
   geom_boxplot(aes(group = Month))+
   facet_wrap(~location)
-
 ```
+
+![](Volcano-Analysis_files/figure-html/unnamed-chunk-11-4.png)<!-- -->
 
 
 
